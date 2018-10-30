@@ -24,8 +24,16 @@ class DocsDisplay(object):
     def __init__(self):
         # to top window
         self.top = tk.Tk()
+        # and program description
         self.progLa = tk.Label(self.top,
                                text="My little Oracle Documents V: %s" % progV)
+        self.progLa.pack()
+        # the menu
+        self.menu = tk.Menu(self.top)
+        self.top.config(menu=self.menu)
+        self.fileMenu =tk.Menu(self.menu)
+        self.menu.add_cascade(label='File', menu=self.fileMenu)
+        self.fileMenu.add_command(lable='Exit', command=root.quit)
 
 
 class OraDocs(object):
