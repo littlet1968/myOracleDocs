@@ -14,8 +14,8 @@ token_url = 'https://oradocs-corp.documents.us2.oraclecloud.com/documents/web?Id
 login_url = 'https://login.oracle.com/oam/server/sso/auth_cred_submit'
 post_sso_url = 'https://login.us2.oraclecloud.com/oam/server/fed/sp/sso?tenant=corp'
 login_data = {
-    'ssousername': 'thomas.liebscher@oracle.com',
-    'password': 'Dr3sd3n.01'
+    'ssousername': 'user.name@oracle.com',
+    'password': 'xxxxx'
 }
 
 
