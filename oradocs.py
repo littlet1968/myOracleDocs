@@ -13,10 +13,6 @@ doc_url = 'https://oradocs-corp.documents.us2.oraclecloud.com/documents/'
 token_url = 'https://oradocs-corp.documents.us2.oraclecloud.com/documents/web?IdcService=GET_OAUTH_TOKEN'
 login_url = 'https://login.oracle.com/oam/server/sso/auth_cred_submit'
 post_sso_url = 'https://login.us2.oraclecloud.com/oam/server/fed/sp/sso?tenant=corp'
-login_data = {
-    'ssousername': 'user.name@oracle.com',
-    'password': 'xxxxx'
-}
 
 
 class DocsDisplay(object):
@@ -36,8 +32,6 @@ class DocsDisplay(object):
         self.fileMenu.add_command(label='Exit', command=self.top.quit)
 
         # the file list box
-        self.
-
 
 
 class OraDocs(object):
@@ -49,6 +43,28 @@ class OraDocs(object):
         self.session.headers.update(self.header)
         self.res = False  # session results
         self.authToken = False  # our authentication token
+        self.readConfig()
+
+    def readConfig(self, confFile=None):
+        # read the configuration file for example username password
+        # format =
+        # { "ssousername": "oracle_user_name",
+        #   "password": "oracle_SSO_password"}
+        #
+        # may other to come
+        #
+        if confFile is None:
+            confFile = './config.json'
+        with open(confFile) as json_file:
+            json_data = json.load(json_file)
+        try:
+            self.login_data = {}
+            self.login_data['ssousername'] = json_data['ssousername']
+            self.login_data['password'] = json_data['password']
+        except Exception as excp:
+            print("Exception during configuration %s" % (excp))
+            sys.exit
+        # debug print(self.login_data)
 
     def getAllInput(self, mySoup):
         # retrieve all imput vars from an soup object
@@ -59,10 +75,9 @@ class OraDocs(object):
 
     def checkSSOlogin(self, page):
         # check if the page is a SSO login page.
-        # login sucessful
         login_success = False
         # first make it beautiful
-        while login_success == False:
+        while login_success is False:
             soup = BeautifulSoup(page.content, 'html.parser')
             # do we find the login.oracle.com
             if "login.oracle.com" in soup.form.attrs['action']:
@@ -71,15 +86,20 @@ class OraDocs(object):
                 # do the SSO login
                 allInput = {}
                 allInput = self.getAllInput(soup)
-                payload = {
-                    'OAM_REQ': allInput['OAM_REQ'],
-                    'locale': allInput['locale'],
-                    'request_id': allInput['request_id'],
-                    'contextType': allInput['contextType'],
-                    'resource_url': allInput['resource_url'],
-                    'ssousername': login_data['ssousername'],
-                    'password': login_data['password']
-                }
+                # payload = {
+                #    'OAM_REQ': allInput['OAM_REQ'],
+                #    'locale': allInput['locale'],
+                #    'request_id': allInput['request_id'],
+                #    'contextType': allInput['contextType'],
+                #    'resource_url': allInput['resource_url'],
+                #}
+                payload = {}
+                for key in allInput.keys():
+                    payload[key] = allInput[key]
+                print(payload)
+                payload['ssousername'] = self.login_data['ssousername']
+                payload['password'] = self.login_data['password']
+                pdb.set_trace()
                 page = self.session.post(login_url, data=payload)
             else:
                 # looks like we don't have a login page
@@ -136,12 +156,12 @@ class OraDocs(object):
                     try:
                         myJson = json.loads(str(soup))
                         self.authToken = myJson['LocalData']['tokenValue']
-                        # print(self.authToken)
                         # update the header
                         self.header["Authorization"] = "Bearer %s" %self.authToken
                         self.session.headers.update(self.header)
                         # pdb.set_trace()
                         return self.authToken
+                        # print(self.authToken)
                     except Exception as excp:
                         print("Exception trying to get token %s" % (excp))
 
@@ -175,10 +195,10 @@ class OraDocs(object):
 
 def main():
     # authToken = False
-    d = DocsDisplay()
-    tk.mainloop()
-    #myOraDocs = OraDocs()
-    #myOraDocs.getToken()
+    # d = DocsDisplay()
+    # tk.mainloop()
+    myOraDocs = OraDocs()
+    myOraDocs.getToken()
     #myDocs = myOraDocs.getHomeFolder()
     #print(myDocs)
     # print(myOraDocs.res.content)
