@@ -7,10 +7,11 @@ import sys
 import pdb
 import json
 import tkinter as tk
+from time import sleep
 
 progV = '0.0.1'
 doc_url = 'https://oradocs-corp.documents.us2.oraclecloud.com/documents/'
-token_url = 'https://oradocs-corp.documents.us2.oraclecloud.com/documents/web?IdcService=GET_OAUTH_TOKEN'
+# 'https://oradocs-corp.documents.us2.oraclecloud.com/documents
 login_url = 'https://login.oracle.com/oam/server/sso/auth_cred_submit'
 post_sso_url = 'https://login.us2.oraclecloud.com/oam/server/fed/sp/sso?tenant=corp'
 
@@ -21,24 +22,93 @@ class DocsDisplay(object):
         # to top window
         self.top = tk.Tk()
         # and program description
-        self.progLa = tk.Label(self.top,
-                               text="My little Oracle Documents V: %s" % progV)
-        self.progLa.pack()
+        self.progl = tk.Label(self.top,
+                              text="My little Oracle Documents V: %s" % progV)
+        self.top.title("OraDocs")
+        self.progl.pack()
+
         # the menu
         self.menu = tk.Menu(self.top)
         self.top.config(menu=self.menu)
-        self.fileMenu = tk.Menu(self.menu)
-        self.menu.add_cascade(label='File', menu=self.fileMenu)
-        self.fileMenu.add_command(label='Exit', command=self.top.quit)
+        self.filemenu = tk.Menu(self.menu)
+        self.menu.add_cascade(label='File', menu=self.filemenu)
+        self.filemenu.add_command(label='Exit', command=self.top.quit)
 
         # the file list box
+        self.filefm = tk.Frame(self.top)
+        self.filesb = tk.Scrollbar(self.filefm)
+        self.filesb.pack(side=tk.RIGHT, fill=tk.Y)
+        self.filelb = tk.Listbox(self.filefm, height=15, width=50,
+                                 yscrollcommand=self.filesb.set)
+        # self.filelb.bind('<Double-1>', self.setDirAndGo)
+        self.filesb.config(command=self.filelb.yview)
+        self.filelb.pack(side=tk.LEFT, fill=tk.BOTH)
+        self.filefm.pack()
+
+        self.messagefm = tk.Frame(self.top)
+        self.messagesbV = tk.Scrollbar(self.messagefm)
+        self.messagesbV.pack(side=tk.RIGHT, fill=tk.Y)
+        self.messagesbH = tk.Scrollbar(self.messagefm, orient=tk.HORIZONTAL)
+        self.messagesbH.pack(side=tk.BOTTOM, fill=tk.X)
+        self.messagelb = tk.Listbox(self.messagefm, height=5, width=50,
+                                    yscrollcommand=self.messagesbV.set,
+                                    xscrollcommand=self.messagesbH.set)
+        self.messagesbV.config(command=self.messagelb.yview)
+        self.messagesbH.config(command=self.messagelb.xview)
+        self.messagelb.pack(side=tk.LEFT, fill=tk.BOTH)
+        self.messagefm.pack()
+
+        self.myOraDocs = OraDocs()
+        self.top.update()
+
+    def doSSO(self):
+        gotToken = False
+        counterT = 0
+        counterSSO = 0
+
+
+    def docsInit(self):
+        gotToken = False
+        gotSSO = False
+        counterT = 0
+        while True:
+            counterT = counterT + 1
+            if counterT > 2:
+                self.messagelb.insert(tk.END, 'Failed to get Token')
+                self.top.update()
+                break
+
+            self.messagelb.insert(tk.END, 'Getting Oracle Docs Token')
+            self.top.update()
+            gotToken, page = self.myOraDocs.getToken()
+
+            if gotToken == 'SSO':
+                counterSSO = 0
+                while True:
+                    counterSSO = counterSSO + 1
+                    if counterSSO > 2:
+                        self.messagelb.insert(tk.END, 'SSO login failed')
+                        self.top.update()
+                        break
+
+                    self.messagelb.insert(tk.END, 'Need SSO login')
+                    self.top.update()
+                    gotSSO, page = self.myOraDocs.checkSSOlogin(page)
+                    if gotSSO == 'Done':
+                        break
+                    # sleep(10)
+
+    def getDocument(self):
+        docApi = 'api/1.2/folders/items'
 
 
 class OraDocs(object):
     #
     def __init__(self):
         self.header = {
-            "User-Agent": "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/36.0.1985.125 Safari/537.36"}
+            "User-Agent": "Mozilla/5.0 (X11; Linux i686) \
+            AppleWebKit/537.36 (KHTML, like Gecko) \
+            Chrome/36.0.1985.125 Safari/537.36"}
         self.session = requests.Session()
         self.session.headers.update(self.header)
         self.res = False  # session results
@@ -76,36 +146,48 @@ class OraDocs(object):
     def checkSSOlogin(self, page):
         # check if the page is a SSO login page.
         login_success = False
-        # first make it beautiful
         while login_success is False:
             soup = BeautifulSoup(page.content, 'html.parser')
             # do we find the login.oracle.com
             if "login.oracle.com" in soup.form.attrs['action']:
+                # check if we are coming from outside
+                if "oamLoginPage.jsp" in soup.form.attrs['action']:
+                    # looks like we need to login to OAM first
+                    print("OAM pre login_url")
+                    login_url = soup.form.attrs['action']
+                    payload = {}
+                    allInput = {}
+                    allInput = self.getAllInput(soup)
+                    for key in allInput.keys():
+                        payload[key] = allInput[key]
+                    page = self.session.post(login_url, data=payload)
+
                 # are we wait for SMS???
                 # if
                 # do the SSO login
-                allInput = {}
-                allInput = self.getAllInput(soup)
-                # payload = {
+                # login_url = soup.form.attrs['action']
+                # allInput = {}
+                # allInput = self.getAllInput(soup)
+                #payload = {
                 #    'OAM_REQ': allInput['OAM_REQ'],
                 #    'locale': allInput['locale'],
                 #    'request_id': allInput['request_id'],
                 #    'contextType': allInput['contextType'],
                 #    'resource_url': allInput['resource_url'],
                 #}
-                payload = {}
-                for key in allInput.keys():
-                    payload[key] = allInput[key]
-                print(payload)
-                payload['ssousername'] = self.login_data['ssousername']
-                payload['password'] = self.login_data['password']
-                pdb.set_trace()
-                page = self.session.post(login_url, data=payload)
-            else:
+                #payload = {}
+                #for key in allInput.keys():
+                #     payload[key] = allInput[key]
+                ## print(payload)
+                #payload['userid'] = self.login_data['ssousername']
+                #payload['pass'] = self.login_data['password']
+                #pdb.set_trace()
+                #page = self.session.post(login_url, data=payload)
+            #else:
                 # looks like we don't have a login page
-                login_success = True
-                print("Login done or not needed")
-                return page  # as it is (now)
+                #login_success = True
+                #print("Login done or not needed")
+                #return page  # as it is (now)
 
         return page  # return the new page
 
@@ -129,8 +211,32 @@ class OraDocs(object):
                     return page  # as it is
 
     def getToken(self):
-        # get the token from the OraDocs
+        # try to get a token from the Oracle Docs server
+        # returns true if successful
+        #         SSO if login needed
+        #         OAM if OAM logn needed (post SSO)
+        docApi = '/web?IdcService=GET_OAUTH_TOKEN'
+        token_url = doc_url + docApi
+
+        allInput = {}
+        page = self.session.get(token_url)
+        pdb.set_trace()
+        if page.status_code == requests.status_codes.codes.OK:
+            soup = BeautifulSoup(page.content, 'html.parser')
+            if 'login.oracle.com' in soup.form.attrs['action']:
+                return 'SSO', page
+
+            allInput = self.getAllInput(soup)
+            pdb.set_trace()
+
+        return 'OAM', page
+
+    def getToken1(self):
+        # try to get the token from the OraDocs
         # check if we have a token
+        docApi = '/web?IdcService=GET_OAUTH_TOKEN'
+        token_url = doc_url + docApi
+
         if not self.authToken:
             # try to open the web page
             try:
@@ -195,12 +301,13 @@ class OraDocs(object):
 
 def main():
     # authToken = False
-    # d = DocsDisplay()
-    # tk.mainloop()
-    myOraDocs = OraDocs()
-    myOraDocs.getToken()
-    #myDocs = myOraDocs.getHomeFolder()
-    #print(myDocs)
+    d = DocsDisplay()
+    d.docsInit()
+    tk.mainloop()
+    # myOraDocs = OraDocs()
+    # myOraDocs.getToken()
+    # myDocs = myOraDocs.getHomeFolder()
+    # print(myDocs)
     # print(myOraDocs.res.content)
     # print(myOraDocs.page)
     # print(myOraDocs.page.content)
