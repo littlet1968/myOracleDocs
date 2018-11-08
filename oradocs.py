@@ -70,27 +70,13 @@ class DocsDisplay(object):
         self.printMsg('Doing SSO login')
 
         try:
-            soup = BeautifulSoup(page.content, 'html.parser')
-        #    pdb.set_trace()
-            # do we find the login.oracle.com
-            if "login" in page.url:
-                # check if we have a "onload" in the body
-                if soup.body['onload'] == "document.forms[0].submit();":
-                    # if we have just a "press the submit button", doit
-                    # get all the input fields from the form
-                    allInput = {}
-                    allInput = self.myOraDocs.getAllInput(soup)
-                    # an crate the payload to be posted
-                    payload = {}
-                    for key in allInput.keys():
-                            payload[key] = allInput[key]
-                    # the url that requested that
-                    post_url = soup.form.attrs['action']
-                    page = self.myOraDocs.session.post(post_url, data=payload)
-                    soup = BeautifulSoup(page.content, 'html.parser')
-
+            # do we find the login some where int the URL
+            while "login" in page.url:
+                pdb.set_trace()
+                soup = BeautifulSoup(page.content, 'html.parser')
                 allInput = {}
                 allInput = self.myOraDocs.getAllInput(soup)
+                # first check if we have the the internal login page
                 if soup.form.attrs['action'] == "https://login.oracle.com/mysso/signon.jsp":
                     # looks like we are doing SSO from oracle network
                     # the post url is like that /oam/server/sso/auth_cred_submit
@@ -106,10 +92,19 @@ class DocsDisplay(object):
 
                     # print(payload)
                     page = self.myOraDocs.session.post(login_url, data=payload)
-                    # soup = BeautifulSoup(page.content, 'html.parser')
+                # second check if we have a "onload" in the body
+                elif soup.body['onload'] == "document.forms[0].submit();":
+                    # if we have just a "press the submit button", doit
+                    # and crate the payload to be posted
+                    payload = {}
+                    for key in allInput.keys():
+                            payload[key] = allInput[key]
+                    # the url that requested that
+                    post_url = soup.form.attrs['action']
+                    page = self.myOraDocs.session.post(post_url, data=payload)
 
         except Exception as excp:
-            myMessage = 'Houston we have a problem ' + excp
+            myMessage = 'Houston we have a problem ' + str(excp)
             self.printMsg(myMessage)
 
     def docsInit(self):
