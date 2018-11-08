@@ -11,10 +11,9 @@ from time import sleep
 
 progV = '0.0.1'
 doc_url = 'https://oradocs-corp.documents.us2.oraclecloud.com/documents/'
-# 'https://oradocs-corp.documents.us2.oraclecloud.com/documents
-login_url = 'https://login.oracle.com/oam/server/sso/auth_cred_submit'
-post_sso_url = 'https://login.us2.oraclecloud.com/oam/server/fed/sp/sso?tenant=corp'
-
+login_base = 'https://login.oracle.com'
+# login_url = 'https://login.oracle.com/oam/server/sso/auth_cred_submit'
+# post_sso_url = 'https://login.us2.oraclecloud.com/oam/server/fed/sp/sso?tenant=corp'
 
 class DocsDisplay(object):
     # display class for my littlet OraDocs program
@@ -61,42 +60,72 @@ class DocsDisplay(object):
         self.myOraDocs = OraDocs()
         self.top.update()
 
-    def doSSO(self):
-        gotToken = False
-        counterT = 0
-        counterSSO = 0
+    def printMsg(self, message):
+        self.messagelb.insert(tk.END, message)
+        self.top.update()
 
+    def doSSO(self, page):
+        # do the SSO login here since we might need some manual action
+        counterSSO = 0
+        self.printMsg('Doing SSO login')
+
+        try:
+            soup = BeautifulSoup(page.content, 'html.parser')
+        #    pdb.set_trace()
+            # do we find the login.oracle.com
+            if "login" in page.url:
+                # check if we have a "onload" in the body
+                if soup.body['onload'] == "document.forms[0].submit();":
+                    # if we have just a "press the submit button", doit
+                    # get all the input fields from the form
+                    allInput = {}
+                    allInput = self.myOraDocs.getAllInput(soup)
+                    # an crate the payload to be posted
+                    payload = {}
+                    for key in allInput.keys():
+                            payload[key] = allInput[key]
+                    # the url that requested that
+                    post_url = soup.form.attrs['action']
+                    page = self.myOraDocs.session.post(post_url, data=payload)
+                    soup = BeautifulSoup(page.content, 'html.parser')
+
+                allInput = {}
+                allInput = self.myOraDocs.getAllInput(soup)
+                if soup.form.attrs['action'] == "https://login.oracle.com/mysso/signon.jsp":
+                    # looks like we are doing SSO from oracle network
+                    # the post url is like that /oam/server/sso/auth_cred_submit
+                    # so internal URL should be like that:
+                    login_url = login_base + '/oam/server/sso/auth_cred_submit'
+                    payload = {}
+                    for key in allInput.keys():
+                        payload[key] = allInput[key]
+                        if key == "username":
+                            payload[key] = self.myOraDocs.login_data['ssousername']
+                        if key == "password":
+                            payload[key] = self.myOraDocs.login_data['password']
+
+                    # print(payload)
+                    page = self.myOraDocs.session.post(login_url, data=payload)
+                    # soup = BeautifulSoup(page.content, 'html.parser')
+
+        except Exception as excp:
+            myMessage = 'Houston we have a problem ' + excp
+            self.printMsg(myMessage)
 
     def docsInit(self):
-        gotToken = False
+        getToken = False
         gotSSO = False
         counterT = 0
         while True:
             counterT = counterT + 1
             if counterT > 2:
-                self.messagelb.insert(tk.END, 'Failed to get Token')
-                self.top.update()
+                self.printMsg('Failed to get Token')
                 break
 
-            self.messagelb.insert(tk.END, 'Getting Oracle Docs Token')
-            self.top.update()
-            gotToken, page = self.myOraDocs.getToken()
-
-            if gotToken == 'SSO':
-                counterSSO = 0
-                while True:
-                    counterSSO = counterSSO + 1
-                    if counterSSO > 2:
-                        self.messagelb.insert(tk.END, 'SSO login failed')
-                        self.top.update()
-                        break
-
-                    self.messagelb.insert(tk.END, 'Need SSO login')
-                    self.top.update()
-                    gotSSO, page = self.myOraDocs.checkSSOlogin(page)
-                    if gotSSO == 'Done':
-                        break
-                    # sleep(10)
+            self.printMsg('Getting Oracle Docs Token')
+            getToken, page = self.myOraDocs.getToken()
+            if getToken == 'SSO':
+                self.doSSO(page)
 
     def getDocument(self):
         docApi = 'api/1.2/folders/items'
@@ -220,14 +249,13 @@ class OraDocs(object):
 
         allInput = {}
         page = self.session.get(token_url)
-        pdb.set_trace()
+        # pdb.set_trace()
         if page.status_code == requests.status_codes.codes.OK:
             soup = BeautifulSoup(page.content, 'html.parser')
             if 'login.oracle.com' in soup.form.attrs['action']:
                 return 'SSO', page
 
             allInput = self.getAllInput(soup)
-            pdb.set_trace()
 
         return 'OAM', page
 
