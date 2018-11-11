@@ -93,63 +93,79 @@ class DocsDisplay(object):
             Chrome/36.0.1985.125 Safari/537.36"}
         self.session = requests.Session()
         self.session.headers.update(self.header)
+        self.session.max_redirects = 3
 
     def getAllInput(self, mySoup):
         # retrieve all imput vars from an soup object
         r_svars = {}
         # pdb.set_trace()
         for var in mySoup.findAll('input', type='hidden'):
-
-            r_svars[var['name']] = var['value']
+            if var.has_attr('value'):
+                r_svars[var['name']] = var['value']
         return r_svars
 
     def doSSO(self, page):
         # do the SSO login here since we might need some manual action
         self.printMsg('Doing SSO login')
+        ssoURL = "https://login.oracle.com/mysso/signon.jsp"
+        extURL = "https://login.oracle.com:443/oaam_server/oamLoginPage.jsp"
 
         try:
             # do we find the login some where int the URL
+            pdb.set_trace()
             while "login" in page.url:
-                #pdb.set_trace()
+                # pdb.set_trace()
                 soup = BeautifulSoup(page.content, 'html.parser')
                 allInput = {}
                 allInput = self.getAllInput(soup)
-                # first check if we have the the internal login page
-                if soup.form.attrs['action'] == "https://login.oracle.com/mysso/signon.jsp":
-                    # looks like we are doing SSO from oracle network
-                    # the post url is like that /oam/server/sso/auth_cred_submit
-                    # so internal URL should be like that:
-                    login_url = login_base + '/oam/server/sso/auth_cred_submit'
-                    payload = {}
-                    for key in allInput.keys():
-                        payload[key] = allInput[key]
-                        if key == "username":
-                            payload[key] = self.login_data['ssousername']
-                        if key == "password":
-                            payload[key] = self.login_data['password']
 
-                    # print(payload)
-                    page = self.session.post(login_url, data=payload)
-                # second check if we have a "onload" in the body
-                elif soup.body['onload'] == "document.forms[0].submit();":
-                    # if we have just a "press the submit button", doit
-                    # and crate the payload to be posted
-                    payload = {}
-                    for key in allInput.keys():
+                # first check if we have the the internal login page
+                if soup.form.has_attr('action'):
+                    if soup.form.attrs['action'] == ssoURL:
+                        # looks like we are doing SSO from oracle network
+                        # login via /oam/server/sso/auth_cred_submit
+                        # so internal URL should be like that:
+                        login_url = login_base + '/oam/server/sso/auth_cred_submit'
+                        payload = {}
+                        for key in allInput.keys():
                             payload[key] = allInput[key]
-                    # the url that requested that
-                    post_url = soup.form.attrs['action']
-                    page = self.session.post(post_url, data=payload)
-                # third are we coming from outside
-                if soup.form.attrs['action'] == "https://login.oracle.com:443/oaam_server/oamLoginPage.jsp":
+                            if key == "username":
+                                payload[key] = self.login_data['ssousername']
+                            if key == "password":
+                                payload[key] = self.login_data['password']
+                            # print(payload)
+                            page = self.session.post(login_url, data=payload,
+                                                     allow_redirects=True)
+
+                    # third are we coming from outside do a redirect on login
+                    elif soup.form.attrs['action'] == extURL:
                         # looks like we are coming from outside
-                        # the post url is like that /oam/server/sso/auth_cred_submit
+                        # the post url is like that
+                        # /oam/server/sso/auth_cred_submit
                         # so internal URL should be like that:
                         login_url = soup.form.attrs['action']
                         payload = {}
                         payload = allInput
                         # print(payload)
-                        page = self.session.post(login_url, data=payload)
+                        page = self.session.post(login_url, data=payload,
+                                                 allow_redirects=True)
+
+                # second check if we have a "onload" in the body
+                elif soup.body.has_attr('onload'):
+                    if soup.body['onload'] == "document.forms[0].submit();":
+                        # if we have just a "press the submit button", doit
+                        # and crate the payload to be posted
+                        payload = {}
+                        payload = allInput
+                        # for key in allInput.keys():
+                        #    payload[key] = allInput[key]
+                        #    # the url that requested that
+                        post_url = soup.form.attrs['action']
+                        page = self.session.post(post_url, data=payload,
+                                                 allow_redirects=True)
+                elif extURL in page.url:
+                    myCookie = page.cookies['JSESSIONID']
+
             return page
 
         except Exception as excp:
@@ -209,10 +225,10 @@ class DocsDisplay(object):
     def getFolder(self, folder):
         docApi = 'api/1.2/folders/items'
         urlApi = doc_url + docApi
-        pdb.set_trace()
         page = self.session.get(urlApi)
         soup = BeautifulSoup(page.content, 'html.parser')
         myJson = json.loads(str(soup))
+        pdb.set_trace()
 
 
     def getDocument(self):
