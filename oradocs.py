@@ -13,11 +13,14 @@ progV = '0.0.1'
 doc_url = 'https://oradocs-corp.documents.us2.oraclecloud.com/documents/'
 login_base = 'https://login.oracle.com'
 # login_url = 'https://login.oracle.com/oam/server/sso/auth_cred_submit'
-# post_sso_url = 'https://login.us2.oraclecloud.com/oam/server/fed/sp/sso?tenant=corp'
+
 
 class DocsDisplay(object):
     # display class for my littlet OraDocs program
     def __init__(self):
+        self._setup_widgets()
+
+    def _setup_widgets(self):
         # to top window
         self.top = tk.Tk()
         # and program description
@@ -39,10 +42,10 @@ class DocsDisplay(object):
         self.filesb.pack(side=tk.RIGHT, fill=tk.Y)
         self.filelb = tk.Listbox(self.filefm, height=15, width=50,
                                  yscrollcommand=self.filesb.set)
-        # self.filelb.bind('<Double-1>', self.setDirAndGo)
+        self.filelb.bind('<Double-1>', self.selectEntry)
         self.filesb.config(command=self.filelb.yview)
-        self.filelb.pack(side=tk.LEFT, fill=tk.BOTH)
-        self.filefm.pack()
+        self.filelb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.filefm.pack(expand=True)
 
         self.messagefm = tk.Frame(self.top)
         self.messagesbV = tk.Scrollbar(self.messagefm)
@@ -54,10 +57,10 @@ class DocsDisplay(object):
                                     xscrollcommand=self.messagesbH.set)
         self.messagesbV.config(command=self.messagelb.yview)
         self.messagesbH.config(command=self.messagelb.xview)
-        self.messagelb.pack(side=tk.LEFT, fill=tk.BOTH)
-        self.messagefm.pack()
+        self.messagelb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.messagefm.pack(expand=True)
 
-        # self.myOraDocs = OraDocs()
+        self.myJson = ""
         self.top.update()
         self.readConfig()
 
@@ -112,7 +115,7 @@ class DocsDisplay(object):
 
         try:
             # do we find the login some where int the URL
-            pdb.set_trace()
+            # pdb.set_trace()
             while "login" in page.url:
                 # pdb.set_trace()
                 soup = BeautifulSoup(page.content, 'html.parser')
@@ -133,12 +136,10 @@ class DocsDisplay(object):
                                 payload[key] = self.login_data['ssousername']
                             if key == "password":
                                 payload[key] = self.login_data['password']
-                            # print(payload)
-                            page = self.session.post(login_url, data=payload,
-                                                     allow_redirects=True)
-
-                    # third are we coming from outside do a redirect on login
-                    elif soup.form.attrs['action'] == extURL:
+                        # print(payload)
+                        page = self.session.post(login_url, data=payload)
+                    # are we coming from outside and need a redirect on login
+                elif soup.form.attrs['action'] == extURL:
                         # looks like we are coming from outside
                         # the post url is like that
                         # /oam/server/sso/auth_cred_submit
@@ -147,11 +148,9 @@ class DocsDisplay(object):
                         payload = {}
                         payload = allInput
                         # print(payload)
-                        page = self.session.post(login_url, data=payload,
-                                                 allow_redirects=True)
-
+                        page = self.session.post(login_url, data=payload)
                 # second check if we have a "onload" in the body
-                elif soup.body.has_attr('onload'):
+                if soup.body.has_attr('onload'):
                     if soup.body['onload'] == "document.forms[0].submit();":
                         # if we have just a "press the submit button", doit
                         # and crate the payload to be posted
@@ -163,7 +162,7 @@ class DocsDisplay(object):
                         post_url = soup.form.attrs['action']
                         page = self.session.post(post_url, data=payload,
                                                  allow_redirects=True)
-                elif extURL in page.url:
+                if extURL in page.url:
                     myCookie = page.cookies['JSESSIONID']
 
             return page
@@ -180,19 +179,28 @@ class DocsDisplay(object):
         docApi = '/web?IdcService=GET_OAUTH_TOKEN'
         token_url = doc_url + docApi
 
-        allInput = {}
-        page = self.session.get(token_url)
+        # allInput = {}
+        tok_page = self.session.get(token_url)
         # pdb.set_trace()
-        if page.status_code == requests.status_codes.codes.OK:
+        if tok_page.status_code == requests.status_codes.codes.OK:
             # if we find login in the URL we most likely need to do a login
-            if "login" in page.url:
-                page = self.doSSO(page)
-                if page.status_code != requests.status_codes.codes.OK:
-                    return "OUPS"
+            if "login" in tok_page.url:
+                print("going to SSO")
+                tok_page = self.doSSO(tok_page)
+                # if page.status_code != requests.status_codes.codes.OK:
+                #    return "OUPS"
+                print("return from SSO")
+                print(type(tok_page))
+            # workaround that the type returned is now after sso if not in
+            # DEBUG
+            if tok_page is None:
+                tok_page = self.session.get(token_url)
+            # print(type(tok_page))
+
             # either we reached here without need to login or we should be after
-            if "IdcService" in page.url:
+            if "IdcService" in tok_page.url:
                 self.printMsg('Getting Oracle Docs Token')
-                soup = BeautifulSoup(page.content, 'html.parser')
+                soup = BeautifulSoup(tok_page.content, 'html.parser')
                 myJson = json.loads(str(soup))
                 self.authToken = myJson['LocalData']['tokenValue']
                 # update the header
@@ -217,28 +225,64 @@ class DocsDisplay(object):
             gotToken = self.getToken()
             if gotToken:
                 myMessage = 'Got Token' + str(gotToken)
-                self.printMsg(myMessage)
+                # self.printMsg(myMessage)
                 break
         # get the root folder
         self.getFolder('/')
 
     def getFolder(self, folder):
-        docApi = 'api/1.2/folders/items'
-        urlApi = doc_url + docApi
-        page = self.session.get(urlApi)
-        soup = BeautifulSoup(page.content, 'html.parser')
-        myJson = json.loads(str(soup))
+        docApi = 'api/1.2/folders/'
         pdb.set_trace()
 
+        if folder == '/':
+            folder = 'items'
+        else:
+            newfolder = None
+            for e in self.myJson["items"]:
+                if e["name"] == folder:
+                    newfolder = e["id"]
+            if newfolder:
+                folder = newfolder + "/items"
+            else:
+                folder = "items"
+
+        urlApi = doc_url + docApi + folder
+        page = self.session.get(urlApi)
+        soup = BeautifulSoup(page.content, 'html.parser')
+        self.myJson = json.loads(str(soup))
+
+        # delete all entries
+        self.filelb.delete(0, tk.END)
+        if folder != "items":
+            self.filelb.insert(tk.END, '/..')
+        for entry in self.myJson["items"]:
+            if entry['type'] == 'folder':
+                self.filelb.insert(tk.END, '/.' + entry['name'])
+            else:
+                self.filelb.insert(tk.END, '  ' + entry['name'])
+
+        self.top.update()
 
     def getDocument(self):
-        docApi = 'api/1.2/folders/items'
+        docApi = 'api/1.2/folders/'
+
+    def selectEntry(self, ev=None):
+        # docApi = 'api/1.2/folders/items'
+        selEntry = self.filelb.get(self.filelb.curselection())
+        pdb.set_trace()
+        if selEntry[0:2] == '/.':
+            self.printMsg(selEntry)
+            # get the new folder entries
+            self.getFolder(selEntry[2:])
+        else:
+            self.printMsg("Download")
+
 
 
 def main():
     d = DocsDisplay()
     d.docsInit()
-    d.getDocument()
+    # d.getDocument()
     tk.mainloop()
 
 
