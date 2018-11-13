@@ -7,6 +7,7 @@ import sys
 import pdb
 import json
 import tkinter as tk
+from tkinter import filedialog
 from time import sleep
 
 progV = '0.0.1'
@@ -23,25 +24,32 @@ class DocsDisplay(object):
     def _setup_widgets(self):
         # to top window
         self.top = tk.Tk()
-        # and program description
-        self.progl = tk.Label(self.top,
-                              text="My little Oracle Documents V: %s" % progV)
-        self.top.title("OraDocs")
-        self.progl.pack()
+        self.top.title("OraDocs %s" % progV)
+
+        # the current directory
+        self.cwd = tk.StringVar(self.top)
+
+        # display the current directory here
+        self.dirl = tk.Label(self.top, text="My little Oracle Documents")
+        self.dirl.pack()
 
         # the menu
         self.menu = tk.Menu(self.top)
         self.top.config(menu=self.menu)
         self.filemenu = tk.Menu(self.menu)
         self.menu.add_cascade(label='File', menu=self.filemenu)
+        self.filemenu.add_command(label='Config', command=self.changeconfig)
         self.filemenu.add_command(label='Exit', command=self.top.quit)
+        self.syncmenu = tk.Menu(self.menu)
+        self.menu.add_cascade(label='Sync', menu=self.syncmenu)
 
         # the file list box
         self.filefm = tk.Frame(self.top)
         self.filesb = tk.Scrollbar(self.filefm)
         self.filesb.pack(side=tk.RIGHT, fill=tk.Y)
         self.filelb = tk.Listbox(self.filefm, height=15, width=50,
-                                 yscrollcommand=self.filesb.set)
+                                 yscrollcommand=self.filesb.set,
+                                 selectmode = tk.EXTENDED)
         self.filelb.bind('<Double-1>', self.selectEntry)
         self.filesb.config(command=self.filelb.yview)
         self.filelb.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -85,7 +93,7 @@ class DocsDisplay(object):
                 self.login_data['ssousername'] = json_data['ssousername']
                 self.login_data['password'] = json_data['password']
             except Exception as excp:
-                print("Exception during configuration %s" % (excp))
+                print("Exception during read configuration %s" % (excp))
                 sys.exit
             # debug print(self.login_data)
 
@@ -179,23 +187,19 @@ class DocsDisplay(object):
         docApi = '/web?IdcService=GET_OAUTH_TOKEN'
         token_url = doc_url + docApi
 
-        # allInput = {}
         tok_page = self.session.get(token_url)
         # pdb.set_trace()
         if tok_page.status_code == requests.status_codes.codes.OK:
             # if we find login in the URL we most likely need to do a login
             if "login" in tok_page.url:
-                print("going to SSO")
+                # print("going to SSO")
                 tok_page = self.doSSO(tok_page)
                 # if page.status_code != requests.status_codes.codes.OK:
                 #    return "OUPS"
-                print("return from SSO")
-                print(type(tok_page))
             # workaround that the type returned is now after sso if not in
             # DEBUG
             if tok_page is None:
                 tok_page = self.session.get(token_url)
-            # print(type(tok_page))
 
             # either we reached here without need to login or we should be after
             if "IdcService" in tok_page.url:
@@ -232,19 +236,32 @@ class DocsDisplay(object):
 
     def getFolder(self, folder):
         docApi = 'api/1.2/folders/'
-        pdb.set_trace()
-
+        # pdb.set_trace()
+        # set the new folder to none first
+        newfolder = None
+        # if the folder is the root folder
         if folder == '/':
+            # just set it items
             folder = 'items'
+        # if we are going one folder back
+        elif folder == '.':
+            # the new folder will be the parent of the existing
+            newfolder = self.myJson["parentID"]
+            if newfolder == "self":
+                newfolder = None
         else:
-            newfolder = None
+            # else we are searching for it
             for e in self.myJson["items"]:
                 if e["name"] == folder:
                     newfolder = e["id"]
-            if newfolder:
-                folder = newfolder + "/items"
-            else:
-                folder = "items"
+                    # we should have the folder so lets "break out" of the loop
+                    break
+        # if we have "a" newfolder set it to the folder id plus "/items"
+        if newfolder:
+            folder = newfolder + "/items"
+        # else we should be on the root of our Documents
+        else:
+            folder = "items"
 
         urlApi = doc_url + docApi + folder
         page = self.session.get(urlApi)
@@ -260,7 +277,8 @@ class DocsDisplay(object):
                 self.filelb.insert(tk.END, '/.' + entry['name'])
             else:
                 self.filelb.insert(tk.END, '  ' + entry['name'])
-
+        self.cwd.set(folder)
+        self.dirl.config(text=self.cwd.get())
         self.top.update()
 
     def getDocument(self):
@@ -269,7 +287,7 @@ class DocsDisplay(object):
     def selectEntry(self, ev=None):
         # docApi = 'api/1.2/folders/items'
         selEntry = self.filelb.get(self.filelb.curselection())
-        pdb.set_trace()
+        # pdb.set_trace()
         if selEntry[0:2] == '/.':
             self.printMsg(selEntry)
             # get the new folder entries
@@ -277,6 +295,10 @@ class DocsDisplay(object):
         else:
             self.printMsg("Download")
 
+    def changeconfig(self):
+        myConfigFile = str(filedialog.askopenfile(initialdir='./'))
+        self.printMsg(myConfigFile)
+        self.readConfig(myConfigFile)
 
 
 def main():
