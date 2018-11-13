@@ -120,19 +120,23 @@ class DocsDisplay(object):
         self.printMsg('Doing SSO login')
         ssoURL = "https://login.oracle.com/mysso/signon.jsp"
         extURL = "https://login.oracle.com:443/oaam_server/oamLoginPage.jsp"
+        ssoExt = "/mysso/signon.jsp"
+        extLnd = ":443/oaam_server/oamLoginPage.jsp"
+        extLog = "/oaam_server/login.do"
 
         try:
             # do we find the login some where int the URL
             # pdb.set_trace()
             while "login" in page.url:
-                # pdb.set_trace()
+                pdb.set_trace()
                 soup = BeautifulSoup(page.content, 'html.parser')
                 allInput = {}
                 allInput = self.getAllInput(soup)
 
                 # first check if we have the the internal login page
                 if soup.form.has_attr('action'):
-                    if soup.form.attrs['action'] == ssoURL:
+                    # if soup.form.attrs['action'] == ssoURL:
+                    if soup.form.attrs['action'] == login_base + ssoExt:
                         # looks like we are doing SSO from oracle network
                         # login via /oam/server/sso/auth_cred_submit
                         # so internal URL should be like that:
@@ -147,7 +151,7 @@ class DocsDisplay(object):
                         # print(payload)
                         page = self.session.post(login_url, data=payload)
                     # are we coming from outside and need a redirect on login
-                elif soup.form.attrs['action'] == extURL:
+                    elif soup.form.attrs['action'] == login_base + extLnd:
                         # looks like we are coming from outside
                         # the post url is like that
                         # /oam/server/sso/auth_cred_submit
@@ -170,9 +174,27 @@ class DocsDisplay(object):
                         post_url = soup.form.attrs['action']
                         page = self.session.post(post_url, data=payload,
                                                  allow_redirects=True)
-                if extURL in page.url:
+                if login_base + extLog in page.url:
                     myCookie = page.cookies['JSESSIONID']
+                    # just in case do another round of soup
+                    soup = BeautifulSoup(page.content, 'html.parser')
+                    allInput = {}
+                    allInput = self.getAllInput(soup)
 
+                    # self.printMsg(myCookie)
+                    # pdb.set_trace()
+                    payload = {}
+                    for key in allInput.keys():
+                        payload[key] = allInput[key]
+
+                    payload['JSESSIONID'] = myCookie
+                    payload['userid'] = self.login_data['ssousername']
+                    payload['pass'] = self.login_data['password']
+                    login_url = login_base + "/oaam_server/loginAuth.do"
+                    page = self.session.post(login_url, data=payload,
+                                             allow_redirects=True)
+                    if page.status_code == requests.status_codes.codes.OK:
+                        page = self.session.get('https://login.oracle.com/oaam_server/challengeUser.do?')
             return page
 
         except Exception as excp:
