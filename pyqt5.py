@@ -1,21 +1,21 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import PyQt5
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QApplication, QWidget
-from PyQt5.QtWebKitWidgets import QWebView , QWebPage
-from PyQt5.QtWebKit import QWebSettings
+from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView,QWebEnginePage as QWebPage
+from PyQt5.QtWebEngineWidgets import QWebEngineSettings as QWebSettings
 from PyQt5.QtNetwork import *
 import sys
 from optparse import OptionParser
-
+import pdb
 
 class MyBrowser(QWebPage):
     ''' Settings for the browser.'''
 
     def userAgentForUrl(self, url):
         ''' Returns a User Agent that will be seen by the website. '''
-        return "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
+        return "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"
 
 class Browser(QWebView):
     def __init__(self):
@@ -40,6 +40,7 @@ class Browser(QWebView):
 
 app = QApplication(sys.argv)
 view = Browser()
+# pdb.set_trace()
 view.showMaximized()
-view.load("https://oradocs-corp.documents.us2.oraclecloud.com/documents/web?IdcService=GET_OAUTH_TOKEN")
+view.load("http://www.google.com")
 app.exec_()

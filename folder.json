@@ -1,0 +1,224 @@
+{
+  "errorCode": "0",
+  "offset": "0",
+  "count": "8",
+  "ownerFolderID": "self",
+  "limit": "100",
+  "totalResults": "8",
+  "items": [{
+    "name": "backup_mail",
+    "ownedBy": {
+      "loginName": "thomas.liebscher@oracle.com",
+      "type": "user",
+      "displayName": "Thomas Liebscher",
+      "id": "UE584788CF3B01E9EBBDD0D0F6C3FF17C117"
+    },
+    "modifiedTime": "2018-09-21T14:29:11Z",
+    "childItemsCount": "1",
+    "id": "F723C621D12D4DA0E9366E97F6C3FF17C1177A968060",
+    "parentID": "self",
+    "type": "folder",
+    "size": "6414900409",
+    "modifiedBy": {
+      "loginName": "thomas.liebscher@oracle.com",
+      "type": "user",
+      "displayName": "Thomas Liebscher",
+      "id": "UE584788CF3B01E9EBBDD0D0F6C3FF17C117"
+    },
+    "createdBy": {
+      "loginName": "thomas.liebscher@oracle.com",
+      "type": "user",
+      "displayName": "Thomas Liebscher",
+      "id": "UE584788CF3B01E9EBBDD0D0F6C3FF17C117"
+    },
+    "createdTime": "2018-09-21T14:29:07Z"
+  }, {
+    "name": "diverses",
+    "ownedBy": {
+      "loginName": "thomas.liebscher@oracle.com",
+      "type": "user",
+      "displayName": "Thomas Liebscher",
+      "id": "UE584788CF3B01E9EBBDD0D0F6C3FF17C117"
+    },
+    "modifiedTime": "2016-09-23T10:39:22Z",
+    "childItemsCount": "17",
+    "id": "F0CFD8AC149854D1DA44764FF6C3FF17C1177A968060",
+    "parentID": "self",
+    "type": "folder",
+    "size": "743115",
+    "modifiedBy": {
+      "loginName": "thomas.liebscher@oracle.com",
+      "type": "user",
+      "displayName": "Thomas Liebscher",
+      "id": "UE584788CF3B01E9EBBDD0D0F6C3FF17C117"
+    },
+    "createdBy": {
+      "loginName": "thomas.liebscher@oracle.com",
+      "type": "user",
+      "displayName": "Thomas Liebscher",
+      "id": "UE584788CF3B01E9EBBDD0D0F6C3FF17C117"
+    },
+    "createdTime": "2016-09-23T10:39:22Z"
+  }, {
+    "name": "JAPAC KT",
+    "ownedBy": {
+      "loginName": "rahul.h.kumar@oracle.com",
+      "type": "user",
+      "displayName": "Rahul Kumar",
+      "id": "U80EFBD3A7C29F886B778C99F6C3FF17C117"
+    },
+    "modifiedTime": "2018-01-17T10:53:22Z",
+    "childItemsCount": "7",
+    "id": "FAC813BE8D94F61220F5A29EF6C3FF17C1177A968060",
+    "type": "folder",
+    "size": "834467038",
+    "modifiedBy": {
+      "loginName": "rahul.h.kumar@oracle.com",
+      "type": "user",
+      "displayName": "Rahul Kumar",
+      "id": "U80EFBD3A7C29F886B778C99F6C3FF17C117"
+    },
+    "createdBy": {
+      "loginName": "rahul.h.kumar@oracle.com",
+      "type": "user",
+      "displayName": "Rahul Kumar",
+      "id": "U80EFBD3A7C29F886B778C99F6C3FF17C117"
+    },
+    "createdTime": "2018-01-15T07:56:44Z"
+  }, {
+    "name": "OCI Training",
+    "ownedBy": {
+      "loginName": "gurmeet.gs.singh@oracle.com",
+      "type": "user",
+      "displayName": "Gurmeet Singh",
+      "id": "U1A24C9E3D24AB996B4BCB86F6C3FF17C117"
+    },
+    "modifiedTime": "2018-03-08T06:58:40Z",
+    "childItemsCount": "3",
+    "id": "F7712CF96A6B1B00491A585BF6C3FF17C1177A968060",
+    "type": "folder",
+    "size": "494058029",
+    "modifiedBy": {
+      "loginName": "gurmeet.gs.singh@oracle.com",
+      "type": "user",
+      "displayName": "Gurmeet Singh",
+      "id": "U1A24C9E3D24AB996B4BCB86F6C3FF17C117"
+    },
+    "createdBy": {
+      "loginName": "gurmeet.gs.singh@oracle.com",
+      "type": "user",
+      "displayName": "Gurmeet Singh",
+      "id": "U1A24C9E3D24AB996B4BCB86F6C3FF17C117"
+    },
+    "createdTime": "2018-03-08T06:58:40Z"
+  }, {
+    "name": "OracleScripts",
+    "ownedBy": {
+      "loginName": "thomas.liebscher@oracle.com",
+      "type": "user",
+      "displayName": "Thomas Liebscher",
+      "id": "UE584788CF3B01E9EBBDD0D0F6C3FF17C117"
+    },
+    "modifiedTime": "2016-10-07T08:29:53Z",
+    "childItemsCount": "29",
+    "id": "F082EC388F5E54723B9FB8A9F6C3FF17C1177A968060",
+    "parentID": "self",
+    "type": "folder",
+    "size": "93909",
+    "modifiedBy": {
+      "loginName": "thomas.liebscher@oracle.com",
+      "type": "user",
+      "displayName": "Thomas Liebscher",
+      "id": "UE584788CF3B01E9EBBDD0D0F6C3FF17C117"
+    },
+    "createdBy": {
+      "loginName": "thomas.liebscher@oracle.com",
+      "type": "user",
+      "displayName": "Thomas Liebscher",
+      "id": "UE584788CF3B01E9EBBDD0D0F6C3FF17C117"
+    },
+    "createdTime": "2016-10-07T08:29:53Z"
+  }, {
+    "name": "RollandStr44",
+    "ownedBy": {
+      "loginName": "miguel.julio@oracle.com",
+      "type": "user",
+      "displayName": "Miguel Julio",
+      "id": "U807CD5169B381F118082F57F6C3FF17C117"
+    },
+    "modifiedTime": "2018-06-04T20:37:12Z",
+    "childItemsCount": "67",
+    "id": "F6D66CD163CFE4A8E5EB3349F6C3FF17C1177A968060",
+    "type": "folder",
+    "size": "966961384",
+    "modifiedBy": {
+      "loginName": "miguel.julio@oracle.com",
+      "type": "user",
+      "displayName": "Miguel Julio",
+      "id": "U807CD5169B381F118082F57F6C3FF17C117"
+    },
+    "createdBy": {
+      "loginName": "miguel.julio@oracle.com",
+      "type": "user",
+      "displayName": "Miguel Julio",
+      "id": "U807CD5169B381F118082F57F6C3FF17C117"
+    },
+    "createdTime": "2018-06-04T20:37:11Z"
+  }, {
+    "name": "sspeu",
+    "ownedBy": {
+      "loginName": "thomas.liebscher@oracle.com",
+      "type": "user",
+      "displayName": "Thomas Liebscher",
+      "id": "UE584788CF3B01E9EBBDD0D0F6C3FF17C117"
+    },
+    "modifiedTime": "2016-09-29T13:57:56Z",
+    "childItemsCount": "4",
+    "id": "F8BC7C83CCC81A387029479EF6C3FF17C1177A968060",
+    "parentID": "self",
+    "type": "folder",
+    "size": "35018",
+    "modifiedBy": {
+      "loginName": "thomas.liebscher@oracle.com",
+      "type": "user",
+      "displayName": "Thomas Liebscher",
+      "id": "UE584788CF3B01E9EBBDD0D0F6C3FF17C117"
+    },
+    "createdBy": {
+      "loginName": "thomas.liebscher@oracle.com",
+      "type": "user",
+      "displayName": "Thomas Liebscher",
+      "id": "UE584788CF3B01E9EBBDD0D0F6C3FF17C117"
+    },
+    "createdTime": "2016-09-29T13:57:56Z"
+  }, {
+    "createdTime": "2018-09-21T14:27:54Z",
+    "id": "D72A741C0D78046039A789C1F6C3FF17C1177A968060",
+    "parentID": "self",
+    "ownedBy": {
+      "loginName": "thomas.liebscher@oracle.com",
+      "type": "user",
+      "displayName": "Thomas Liebscher",
+      "id": "UE584788CF3B01E9EBBDD0D0F6C3FF17C117"
+    },
+    "size": "2238",
+    "modifiedBy": {
+      "loginName": "thomas.liebscher@oracle.com",
+      "type": "user",
+      "displayName": "Thomas Liebscher",
+      "id": "UE584788CF3B01E9EBBDD0D0F6C3FF17C117"
+    },
+    "name": "Database.kdbx",
+    "type": "file",
+    "version": "1",
+    "modifiedTime": "2018-09-21T14:27:54Z",
+    "mimeType": "Application/kdbx",
+    "createdBy": {
+      "loginName": "thomas.liebscher@oracle.com",
+      "type": "user",
+      "displayName": "Thomas Liebscher",
+      "id": "UE584788CF3B01E9EBBDD0D0F6C3FF17C117"
+    }
+  }],
+  "hasMore": "0"
+}
