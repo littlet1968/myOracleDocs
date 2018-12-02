@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
-import PyQt5
+# import PyQt5
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QApplication, QWidget
-from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView,QWebEnginePage as QWebPage
+from PyQt5.QtWebEngineWidgets import QWebEngineView as QWebView
+from PyQt5.QtWebEngineWidgets import QWebEnginePage as QWebPage
 from PyQt5.QtWebEngineWidgets import QWebEngineSettings as QWebSettings
 from PyQt5.QtNetwork import *
 import sys
 from optparse import OptionParser
 import pdb
+
 
 class MyBrowser(QWebPage):
     ''' Settings for the browser.'''
@@ -26,7 +28,7 @@ class Browser(QWebView):
         self.titleChanged.connect(self.adjustTitle)
         #super(Browser).connect(self.ui.webView,QtCore.SIGNAL("titleChanged (const QString&)"), self.adjustTitle)
 
-    def load(self,url):
+    def load(self, url):
         self.setUrl(QUrl(url))
 
     def adjustTitle(self):
@@ -35,7 +37,6 @@ class Browser(QWebView):
     def disableJS(self):
         settings = QWebSettings.globalSettings()
         settings.setAttribute(QWebSettings.JavascriptEnabled, False)
-
 
 
 app = QApplication(sys.argv)
