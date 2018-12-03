@@ -43,7 +43,7 @@ class App(QMainWindow):
         openAction = QAction(QIcon(''), '&Open', self)
         openAction.setShortcut('Ctrl+O')
         openAction.setStatusTip('Opens a file')
-        openAction.triggered.connect(self.openCall)
+        openAction.triggered.connect(self.openCall())
         # the help actions
         helpAction = QAction(QIcon(''), 'Help', self)
         helpAction.triggered.connect(self.openHelp)
@@ -68,6 +68,7 @@ class App(QMainWindow):
         self.button = QPushButton('Click Me', self)
         self.button.move(10, 350)
         self.button.clicked.connect(self.doRequest)
+
 
     def doRequest(self):
         self.root = "https://oradocs-corp.documents.us2.oraclecloud.com/documents/"
