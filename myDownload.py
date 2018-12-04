@@ -4,9 +4,20 @@
 from PyQt5.QtCore import QDir, QFile, QFileInfo, QIODevice, QUrl
 from PyQt5.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
         QHBoxLayout, QLabel, QLineEdit, QMessageBox, QProgressDialog,
-        QPushButton, QVBoxLayout, QAction, QMainWindow, QTextEdit)
+        QPushButton, QVBoxLayout, QAction, QMainWindow, QTextEdit, QSizePolicy)
 from PyQt5.QtGui import QIcon, QTextCursor
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
+
+
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(600, 400)
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.MainWindow.sizePolicy().hasHeightForWidth())
+        self.MainWindow.setSizePolicy(sizePolicy)
 
 
 class HttpWindow(QMainWindow):
@@ -25,21 +36,6 @@ class HttpWindow(QMainWindow):
         self.outFile = None
         self.httpGetId = 0
         self.httpRequestAborted = False
-
-#        self.setGeometry(10, 10, 600, 400)
-#        self.urlLineEdit = QLineEdit('https://www.qt.io', self)
-#        self.urlLineEdit.setGeometry(12, 40, 590, 20)
-#        urlLabel = QLabel("&URL:")
-#        urlLabel.setBuddy(self.urlLineEdit)
-#        self.statusLabel = QLabel(
-#                "Please enter the URL of a file you want to download.", self)
-#        self.statusLabel.setWordWrap(True)
-#        self.statusLabel.setGeometry(12, 10, 590, 19)
-
-        # self.downloadButton = QPushButton("Download", self)
-        # self.downloadButton.setDefault(True)
-        # self.downloadButton.move(10, 350)
-        # self.downloadButton.clicked.connect(self.onDownloadClick)
 
         self.initUI()
 
@@ -86,6 +82,7 @@ class HttpWindow(QMainWindow):
         self.logOutput.setReadOnly(True)
         # self.logOutput.setLineWrapMode(QTextEdit.NoWrap)
         self.logOutput.setGeometry(5, 320, 590, 60)
+        self.logOutput.setSizePolicy(self.sizePolicy)
 
         self.statusBar().showMessage('waiting for click ...')
 
